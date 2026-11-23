@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#00979d">
+  <meta name="description" content="Spark 的嵌入式工作台示例代码：Arduino IDE 风格只读预览。">
+  <title>示例代码 · Arduino IDE 预览 · Spark 的日记</title>
+  <link rel="stylesheet" href="./arduino-viewer.css">
+</head>
+<body class="arduino-page">
+  <div class="viewer-page-head">
+    <a href="./embedded.html#projects">← Spark 的嵌入式小工坊</a>
+    <span>EXAMPLE CODE / 只读预览</span>
+  </div>
+
+  <main class="ide-shell">
+    <section class="ide-window" aria-label="Arduino IDE 风格示例代码预览">
+      <div class="ide-titlebar">
+        <span class="ide-app-name">Arduino</span>
+        <span class="ide-version">1.8.15</span>
+        <span class="ide-window-title" id="window-title">示例代码</span>
+        <span class="win-controls" aria-hidden="true">
+          <i></i><i></i><i></i>
+        </span>
+      </div>
+
+      <nav class="ide-menubar" aria-label="Arduino 菜单">
+        <details class="ide-menu">
+          <summary>文件</summary>
+          <div class="menu-panel">
+            <button type="button" data-action="download">下载示例 .ino<span class="shortcut">.ino</span></button>
+            <a href="./examples/Heartbeat/Heartbeat.ino" id="source-link" target="_blank" rel="noreferrer">查看纯文本源码</a>
+            <a href="./embedded.html#projects">返回嵌入式工作台</a>
+          </div>
+        </details>
+        <details class="ide-menu">
+          <summary>编辑</summary>
+          <div class="menu-panel">
+            <button type="button" data-action="copy">复制全部代码<span class="shortcut">Ctrl+C</span></button>
+            <button type="button" data-action="select">选中全部代码</button>
+          </div>
+        </details>
+        <details class="ide-menu">
+          <summary>项目</summary>
+          <div class="menu-panel">
+            <a href="./arduino-viewer.html?example=heartbeat">第一束光</a>
+            <a href="./arduino-viewer.html?example=button-lamp">一次按下，一次回应</a>
+            <a href="./arduino-viewer.html?example=threshold">感知连续的世界</a>
+          </div>
+        </details>
+        <details class="ide-menu">
+          <summary>工具</summary>
+          <div class="menu-panel">
+            <span class="menu-static">开发板：Arduino Uno</span>
+            <span class="menu-static">端口：COM6</span>
+            <span class="menu-static muted">示例页不会真正连接开发板</span>
+          </div>
+        </details>
+        <details class="ide-menu">
+          <summary>帮助</summary>
+          <div class="menu-panel">
+            <button type="button" data-action="explain">这个页面怎么用？</button>
+            <a href="./embedded.html#projects">回到项目列表</a>
+          </div>
+        </details>
+      </nav>
+
+      <div class="ide-toolbar">
+        <a class="tool-btn" href="./embedded.html#projects" title="返回嵌入式工作台" aria-label="返回嵌入式工作台">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m6-6-6 6 6 6"/></svg>
+        </a>
+        <span class="toolbar-divider" aria-hidden="true"></span>
+        <button class="tool-btn" type="button" id="verify-button" data-action="explain" title="只读预览，不会实际编译" aria-label="验证说明">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5 10 17l9-10"/></svg>
+        </button>
+        <button class="tool-btn" type="button" id="upload-button" data-action="explain" title="只读预览，不会上传到开发板" aria-label="上传说明">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-5 5 5-5 5 5"/></svg>
+        </button>
+        <span class="toolbar-divider" aria-hidden="true"></span>
+        <button class="tool-btn" type="button" id="copy-button" data-action="copy" title="复制全部代码" aria-label="复制全部代码">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="1"/><path d="M16 8V6H5v11h3"/></svg>
+        </button>
+        <button class="tool-btn" type="button" id="download-button" data-action="download" title="下载 .ino 文件" aria-label="下载 .ino 文件">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11m-4-4 4 4 4-4M5 19h14"/></svg>
+        </button>
+        <span class="toolbar-divider" aria-hidden="true"></span>
+        <button class="tool-btn subtle" type="button" data-action="explain" title="选择开发板" aria-label="选择开发板">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1"/><path d="M9 2v2m6-2v2M9 20v2m6-2v2M2 9h2m-2 6h2m16-6h2m-2 6h2"/></svg>
+        </button>
+        <span class="board-pill" title="示例使用 Arduino Uno R3">
+          <i aria-hidden="true"></i>
+          <span>Arduino Uno 在 COM6</span>
+        </span>
+      </div>
+
+      <div class="ide-tabbar">
+        <div class="ide-tab active">
+          <span id="tab-title">第一束光</span>
+          <a class="tab-close" href="./embedded.html#projects" aria-label="关闭并返回项目列表">×</a>
+        </div>
+        <span class="tab-file" id="tab-file">Heartbeat.ino</span>
+        <span class="tab-readonly">只读</span>
+      </div>
+
+      <div class="ide-editor" id="ide-editor" tabindex="0" aria-label="示例代码">
+        <div class="line-numbers" id="line-numbers" aria-hidden="true"></div>
+        <pre class="code-view"><code id="code">正在读取示例代码……</code></pre>
+      </div>
+
+      <div class="ide-console" aria-live="polite">
+        <div class="console-tabs">
+          <span class="active">编译输出</span>
+          <span>错误</span>
+          <span class="console-title">EXAMPLE PREVIEW / 只读</span>
+        </div>
+        <pre id="console-output">正在准备示例代码……</pre>
+      </div>
+
+      <div class="ide-statusbar">
+        <span id="status-line">示例代码</span>
+        <span id="status-meta">Arduino Uno · COM6</span>
+        <span class="status-grow"></span>
+        <span>UTF-8</span>
+        <span>只读预览</span>
+      </div>
+    </section>
+  </main>
+
+  <noscript>
+    <p class="viewer-noscript">这个页面需要 JavaScript 才能读取示例代码。请直接查看 <a href="./examples/Heartbeat/Heartbeat.ino">Heartbeat.ino</a>。</p>
+  </noscript>
+
+  <script src="./arduino-viewer.js" defer></script>
+</body>
+</html>

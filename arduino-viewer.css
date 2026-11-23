@@ -1,0 +1,687 @@
+/* Arduino IDE 1.8-style code viewer for Spark's workshop */
+
+:root {
+  --arduino-teal: #00979d;
+  --arduino-teal-dark: #00777c;
+  --arduino-ink: #1d2a2a;
+  --arduino-line: #d3dddd;
+  --arduino-panel: #f4f6f6;
+  --arduino-muted: #6b8080;
+  --code-bg: #ffffff;
+  --line-h: 22px;
+  --mono: Consolas, "Courier New", "Cascadia Mono", monospace;
+  --ui: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body.arduino-page {
+  margin: 0;
+  padding: 22px 22px 30px;
+  color: #e6f4f3;
+  background:
+    radial-gradient(ellipse at 18% 0%, #124b4c 0, transparent 45%),
+    radial-gradient(ellipse at 88% 12%, #12343f 0, transparent 50%),
+    repeating-linear-gradient(90deg, #61d9d90b 0 1px, transparent 1px 84px),
+    linear-gradient(160deg, #071315, #0a1c1e 55%, #071112);
+  font-family: var(--ui);
+}
+
+body.arduino-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, #00000016 0 1px, transparent 1px 4px);
+  opacity: 0.35;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+summary {
+  font: inherit;
+}
+
+button {
+  color: inherit;
+}
+
+.viewer-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(1240px, 100%);
+  margin: 0 auto 14px;
+  color: #a9cfcd;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+}
+
+.viewer-page-head a {
+  color: #bde8e4;
+  text-decoration: none;
+}
+
+.viewer-page-head a:hover {
+  color: #ffffff;
+}
+
+.viewer-page-head span {
+  font-family: var(--mono);
+  color: #78aaa8;
+}
+
+.ide-shell {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+}
+
+.ide-window {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #aebfbf;
+  border-radius: 5px;
+  background: #fff;
+  color: var(--arduino-ink);
+  box-shadow:
+    0 35px 90px #00000099,
+    0 0 0 1px #ffffff14 inset,
+    0 0 80px #01c4c41a;
+  animation: ide-enter 420ms ease-out both;
+}
+
+@keyframes ide-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Title bar ---------- */
+
+.ide-titlebar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 12px;
+  border-bottom: 1px solid #c4d0d0;
+  background: linear-gradient(#f7f8f8, #e5eaea);
+  color: #536565;
+  font-size: 12px;
+}
+
+.ide-app-name {
+  color: #0b7378;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.ide-version {
+  color: #809393;
+  font: 10px var(--mono);
+}
+
+.ide-window-title {
+  position: absolute;
+  left: 50%;
+  max-width: 55%;
+  overflow: hidden;
+  transform: translateX(-50%);
+  color: #596c6c;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.win-controls {
+  display: flex;
+  gap: 7px;
+  margin-left: auto;
+}
+
+.win-controls i {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #b9c6c6;
+  border-radius: 50%;
+  background: #f4f7f7;
+}
+
+.win-controls i:first-child {
+  background: #f1c9a5;
+  border-color: #d5a77f;
+}
+
+/* ---------- Menu bar ---------- */
+
+.ide-menubar {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  height: 31px;
+  padding: 0 7px;
+  border-bottom: 1px solid #d8e0e0;
+  background: #fbfcfc;
+  font-size: 12px;
+}
+
+.ide-menu {
+  position: relative;
+}
+
+.ide-menu summary {
+  display: block;
+  padding: 6px 11px;
+  border-radius: 2px;
+  color: #354747;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ide-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.ide-menu summary:hover,
+.ide-menu[open] summary {
+  background: #e2f0ef;
+  color: #006d72;
+}
+
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  padding: 5px;
+  border: 1px solid #c5d2d2;
+  border-radius: 3px;
+  background: #ffffff;
+  box-shadow: 0 15px 35px #142a2a24;
+}
+
+.menu-panel a,
+.menu-panel button,
+.menu-static {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 2px;
+  background: none;
+  color: #2e4040;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menu-panel a:hover,
+.menu-panel button:hover {
+  background: #e8f3f2;
+  color: #006b6f;
+}
+
+.menu-panel .menu-static {
+  padding-block: 5px;
+  color: #728686;
+  cursor: default;
+}
+
+.menu-panel .menu-static.muted {
+  margin-top: 3px;
+  border-top: 1px solid #e3e9e9;
+  color: #91a2a2;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.menu-panel .shortcut {
+  float: right;
+  margin-left: 20px;
+  color: #95a5a5;
+  font: 10px var(--mono);
+}
+
+/* ---------- Toolbar ---------- */
+
+.ide-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 10px;
+  border-bottom: 1px solid #d4dddd;
+  background: #ffffff;
+}
+
+.tool-btn {
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  background: transparent;
+  color: #287f83;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.tool-btn:hover {
+  border-color: #b8dada;
+  background: #e9f6f5;
+  color: #006f74;
+}
+
+.tool-btn:focus-visible,
+.ide-menu summary:focus-visible,
+.menu-panel button:focus-visible,
+.menu-panel a:focus-visible {
+  outline: 2px solid var(--arduino-teal);
+  outline-offset: 1px;
+}
+
+.tool-btn svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.tool-btn.subtle {
+  color: #638484;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 19px;
+  margin: 0 4px;
+  background: #dce5e5;
+}
+
+.board-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid #cbd8d8;
+  border-radius: 3px;
+  background: #f8fbfb;
+  color: #536868;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.board-pill i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #36ae9a;
+  box-shadow: 0 0 7px #36ae9a88;
+}
+
+/* ---------- Tabs ---------- */
+
+.ide-tabbar {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 9px;
+  border-bottom: 1px solid #b8c7c7;
+  background: #dfe8e8;
+  overflow: auto hidden;
+}
+
+.ide-tab {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  height: 34px;
+  margin-right: 2px;
+  padding: 0 13px;
+  border-right: 1px solid #00797e;
+  background: var(--arduino-teal);
+  color: #ffffff;
+  font-size: 12px;
+}
+
+.tab-close {
+  color: #d7ffff;
+  font-size: 16px;
+  line-height: 1;
+  text-decoration: none;
+  opacity: 0.72;
+}
+
+.tab-close:hover {
+  opacity: 1;
+}
+
+.tab-file {
+  flex: 0 0 auto;
+  margin-left: 7px;
+  color: #5f7474;
+  font: 10px var(--mono);
+  letter-spacing: 0.2px;
+}
+
+.tab-readonly {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 2px 7px;
+  border: 1px solid #a8c3c3;
+  border-radius: 999px;
+  color: #5f7b7b;
+  font: 9px var(--mono);
+  letter-spacing: 1px;
+}
+
+/* ---------- Editor ---------- */
+
+.ide-editor {
+  display: flex;
+  height: clamp(360px, 52vh, 590px);
+  overflow: auto;
+  background: var(--code-bg);
+  scrollbar-color: #b6c8c8 #f0f3f3;
+  scrollbar-width: thin;
+}
+
+.ide-editor::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.ide-editor::-webkit-scrollbar-track {
+  background: #f0f3f3;
+}
+
+.ide-editor::-webkit-scrollbar-thumb {
+  border: 3px solid #f0f3f3;
+  border-radius: 10px;
+  background: #afc4c4;
+}
+
+.line-numbers {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  flex: 0 0 52px;
+  padding: 14px 10px 26px 0;
+  border-right: 1px solid #edf0f0;
+  background: #f7f9f9;
+  color: #9aaaaa;
+  font: 13px/var(--line-h) var(--mono);
+  text-align: right;
+  user-select: none;
+}
+
+.line-numbers div {
+  height: var(--line-h);
+}
+
+.code-view {
+  flex: 1;
+  min-width: max-content;
+  margin: 0;
+  padding: 14px 28px 26px 16px;
+  background: #ffffff;
+  color: #202b2b;
+  font: 13px/var(--line-h) var(--mono);
+  tab-size: 2;
+  white-space: pre;
+}
+
+.code-view code {
+  font: inherit;
+}
+
+.tok-com { color: #6b8f6b; font-style: italic; }
+.tok-pre { color: #7b6b00; }
+.tok-str { color: #a31515; }
+.tok-key { color: #c34e00; font-weight: 600; }
+.tok-type { color: #267f99; }
+.tok-fn { color: #795e26; }
+.tok-const { color: #b02b8b; }
+.tok-num { color: #098658; }
+
+.code-empty {
+  color: #8d9e9e;
+  font-style: italic;
+}
+
+/* ---------- Console ---------- */
+
+.ide-console {
+  border-top: 1px solid #111818;
+  background: #1e1e1e;
+  color: #d4d4d4;
+}
+
+.console-tabs {
+  display: flex;
+  align-items: stretch;
+  height: 29px;
+  border-bottom: 1px solid #111111;
+  background: #252526;
+}
+
+.console-tabs span {
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  color: #a0adad;
+  font-size: 11px;
+}
+
+.console-tabs .active {
+  border-top: 2px solid var(--arduino-teal);
+  background: #1e1e1e;
+  color: #eef7f7;
+}
+
+.console-tabs .console-title {
+  margin-left: auto;
+  padding-right: 12px;
+  color: #758686;
+  font: 9px var(--mono);
+  letter-spacing: 0.8px;
+}
+
+#console-output {
+  min-height: 78px;
+  max-height: 132px;
+  margin: 0;
+  padding: 10px 14px 12px;
+  overflow: auto;
+  color: #cad7d7;
+  font: 11px/1.75 var(--mono);
+  white-space: pre-wrap;
+}
+
+#console-output .ok {
+  color: #7bd3a6;
+}
+
+#console-output .muted {
+  color: #819292;
+}
+
+#console-output .warn {
+  color: #e4be75;
+}
+
+/* ---------- Status bar ---------- */
+
+.ide-statusbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  height: 27px;
+  padding: 0 12px;
+  background: var(--arduino-teal);
+  color: #e8ffff;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.ide-statusbar .status-grow {
+  flex: 1;
+}
+
+.ide-statusbar span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---------- Outside / fallback ---------- */
+
+.viewer-noscript {
+  width: min(1240px, 100%);
+  margin: 14px auto 0;
+  padding: 14px 16px;
+  border: 1px solid #3d6d6d;
+  background: #0c2223;
+  color: #c9e7e5;
+  font-size: 13px;
+}
+
+.viewer-noscript a {
+  color: #77e4dd;
+}
+
+@media (max-width: 760px) {
+  body.arduino-page {
+    padding: 14px 10px 22px;
+  }
+
+  .viewer-page-head {
+    margin-bottom: 10px;
+    font-size: 10px;
+    letter-spacing: 0.8px;
+  }
+
+  .viewer-page-head span {
+    display: none;
+  }
+
+  .ide-window {
+    border-radius: 4px;
+  }
+
+  .ide-titlebar {
+    height: 33px;
+    padding-inline: 9px;
+  }
+
+  .ide-window-title {
+    display: none;
+  }
+
+  .win-controls {
+    gap: 5px;
+  }
+
+  .ide-menubar {
+    height: 30px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ide-menubar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ide-menu summary {
+    padding: 6px 8px;
+    white-space: nowrap;
+  }
+
+  .ide-toolbar {
+    gap: 2px;
+    padding-inline: 6px;
+  }
+
+  .board-pill {
+    padding: 3px 7px;
+    font-size: 9px;
+  }
+
+  .board-pill span {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .tab-file,
+  .tab-readonly {
+    display: none;
+  }
+
+  .ide-editor {
+    height: 52vh;
+    min-height: 320px;
+  }
+
+  .line-numbers {
+    flex-basis: 42px;
+    padding-right: 6px;
+    padding-left: 2px;
+    font-size: 12px;
+  }
+
+  .code-view {
+    padding: 14px 20px 24px 12px;
+    font-size: 12px;
+  }
+
+  .ide-console #console-output {
+    max-height: 120px;
+    font-size: 10px;
+  }
+
+  .ide-statusbar {
+    gap: 10px;
+    padding-inline: 9px;
+    font-size: 9px;
+  }
+
+  .ide-statusbar #status-meta {
+    max-width: 120px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ide-window {
+    animation: none;
+  }
+}
