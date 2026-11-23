@@ -52,39 +52,55 @@
       return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),
       mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
     float fbm(vec3 p){float s=0.,a=.5;for(int i=0;i<5;i++){s+=a*noise(p);p=p*2.03+vec3(7.1,2.7,3.4);a*=.5;}return s;}
+    uniform sampler2D earthTexture;
+    uniform float textureReady;
     vec3 rotateY(vec3 p,float a){return vec3(cos(a)*p.x+sin(a)*p.z,p.y,-sin(a)*p.x+cos(a)*p.z);}
     void main(){
       vec2 uv=(gl_FragCoord.xy-.5*resolution)/min(resolution.x,resolution.y)*2.65;
       float r=length(uv);
       vec3 light=normalize(vec3(-.65,.65,.65));
-      if(r>1.){
-        float glow=exp(-(r-1.)*24.)*.38+exp(-(r-1.)*7.)*.06;
-        float side=.55+.45*dot(normalize(vec3(uv,.2)),light);
-        gl_FragColor=vec4(vec3(.16,.62,1.),glow*side);return;
-      }
-      vec3 n=vec3(uv,sqrt(1.-r*r));
+      if(r>1.){discard;}
+      vec3 n=vec3(uv,sqrt(max(0.,1.-r*r)));
       vec3 p=rotateY(n,rotation);
-      float continents=fbm(p*3.1);
-      float coast=smoothstep(.46,.51,continents);
-      float detail=fbm(p*22.);
-      vec3 ocean=mix(vec3(.015,.065,.17),vec3(.025,.24,.38),smoothstep(.32,.49,continents));
-      vec3 land=mix(vec3(.035,.19,.19),vec3(.24,.40,.30),detail);
-      land=mix(land,vec3(.54,.58,.49),smoothstep(.61,.75,continents));
-      vec3 surface=mix(ocean,land,coast);
-      float polar=smoothstep(.84,.98,abs(p.y)+detail*.08);
-      surface=mix(surface,vec3(.65,.78,.85),polar);
+      float continents=fbm(p*2.7);
+      float detail=fbm(p*10.);
+      float fine=fbm(p*34.);
+      float coast=smoothstep(.475,.51,continents);
+      float depth=smoothstep(.29,.49,continents);
+      float arid=smoothstep(.55,.76,detail)*smoothstep(.12,.5,abs(p.y))*(1.-smoothstep(.78,.92,abs(p.y)));
+      float hx=fbm(p*8.+vec3(.012,0,0))-fbm(p*8.-vec3(.012,0,0));
+      float hy=fbm(p*8.+vec3(0,.012,0))-fbm(p*8.-vec3(0,.012,0));
+      vec3 relief=normalize(n+vec3(hx,hy,0.)*1.15);
+      vec3 ocean=mix(vec3(.004,.02,.06),vec3(.015,.08,.16),depth);
+      vec3 land=mix(vec3(.05,.13,.07),vec3(.16,.25,.12),detail);
+      land=mix(land,vec3(.30,.25,.16),arid*.65);
+      land=mix(land,vec3(.45,.44,.36),smoothstep(.70,.90,detail)*.25);
+      vec3 proceduralSurface=mix(ocean,land,coast);
+      float PI=3.14159265;
+      float lon=atan(p.z,p.x);
+      float lat=asin(clamp(p.y,-1.,1.));
+      vec2 earthUv=vec2(lon/(2.*PI)+.5,.5-lat/PI);
+      vec3 mapped=texture2D(earthTexture,earthUv).rgb;
+      vec3 surface=mix(proceduralSurface,mapped,textureReady);
+      float water=mix(1.-coast,smoothstep(.02,.13,mapped.b-mapped.r),textureReady);
       vec3 cloudP=rotateY(n,rotation*.92+.13);
-      float clouds=smoothstep(.48,.69,fbm(cloudP*6.+fbm(cloudP*3.)*1.4));
-      float diffuse=max(dot(n,light),0.);
-      vec3 color=surface*(.06+diffuse*1.4);
-      color=mix(color,vec3(.78,.88,1.)*(.10+diffuse*1.1),clouds*.88);
-      float spec=pow(max(dot(reflect(-light,n),vec3(0,0,1)),0.),48.);
-      color+=vec3(.4,.72,.9)*spec*(1.-coast)*.7;
-      float rim=pow(1.-n.z,3.5);
-      color+=vec3(.12,.55,1.)*rim*(.15+diffuse*1.7);
-      color+=vec3(.35,.16,.5)*pow(1.-n.z,4.)*max(dot(n,normalize(vec3(.9,-.1,.2))),0.)*.6;
-      color=pow(color,vec3(.86));
-      gl_FragColor=vec4(color,(1.-smoothstep(.995,1.,r)));
+      float clouds=smoothstep(.50,.67,fbm(cloudP*5.+fbm(cloudP*2.3)*.8));
+      float ndl=max(dot(n,light),0.);
+      float reliefNdl=max(dot(relief,light),0.);
+      float lit=mix(mix(ndl,reliefNdl,coast),ndl,textureReady);
+      float day=smoothstep(-.06,.20,dot(n,light));
+      vec3 color=surface*(.012+lit*1.45);
+      color*=.90+.16*fine*coast*(1.-textureReady);
+      float cloudAmount=mix(1.,.32,textureReady);
+      color*=1.-clouds*.20*day*cloudAmount;
+      float spec=pow(max(dot(reflect(-light,n),vec3(0,0,1)),0.),90.);
+      color+=vec3(1.,.95,.85)*spec*water*day*.9;
+      vec3 cloudColor=vec3(.86,.89,.92)*(.03+day*1.08);
+      color=mix(color,cloudColor,clouds*(.55*day+.03)*cloudAmount);
+      color*=1.-pow(1.-n.z,2.)*.20;
+      color*=mix(vec3(1.),vec3(1.06,1.,.92),day);
+      color=pow(max(color,0.),vec3(.9));
+      gl_FragColor=vec4(color,1.-smoothstep(.992,1.,r));
     }`;
   try {
     const compile = (type, source) => {
@@ -101,7 +117,36 @@
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]), gl.STATIC_DRAW);
     const position = gl.getAttribLocation(program, 'position'); gl.enableVertexAttribArray(position); gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
     const size = gl.getUniformLocation(program,'resolution'), turn = gl.getUniformLocation(program,'rotation');
-    render = () => { gl.uniform2f(size,canvas.width,canvas.height); gl.uniform1f(turn,angle); gl.drawArrays(gl.TRIANGLES,0,6); };
+    render = () => {
+      gl.clearColor(0,0,0,0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.uniform2f(size,canvas.width,canvas.height);
+      gl.uniform1f(turn,angle);
+      gl.drawArrays(gl.TRIANGLES,0,6);
+    };
+    const earthUniform=gl.getUniformLocation(program,'earthTexture');
+    const readyUniform=gl.getUniformLocation(program,'textureReady');
+    const texture=gl.createTexture();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D,texture);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([12,24,44,255]));
+    gl.uniform1i(earthUniform,0);
+    gl.uniform1f(readyUniform,0);
+    const earthImage=new Image();
+    earthImage.onload=()=>{
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D,texture);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+      gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,earthImage);
+      gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+      gl.uniform1f(readyUniform,1);
+      render();
+    };
+    earthImage.src='./assets/earth-blue-marble.jpg';
     const resize = () => {
       const dpr = Math.min(devicePixelRatio || 1,1.5);
       canvas.width = Math.round(canvas.clientWidth*dpr); canvas.height = Math.round(canvas.clientHeight*dpr);

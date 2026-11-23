@@ -8,7 +8,11 @@ V0.8：深空首页、嵌入式小工坊、英语沙龙与个人博客。保留�
 - GitHub Pages 静态镜像：<https://lfh2004106.github.io/neon-lab/>
 - GitHub 仓库：<https://github.com/lfh2004106/neon-lab>
 
-GitHub Pages 只提供静态页面，AI 对话和公共留言必须使用 Render 完整站点。Render 免费实例会休眠，第一次打开可能需要等待。
+页面、AI 对话和公共留言必须使用 Render 完整站点。Render 免费实例会休眠，第一次打开可能需要等待。
+
+## 星球贴图
+
+首页星球使用本地地球贴图 `assets/earth-blue-marble.jpg`（NASA Blue Marble 地球影像，取自 three.js examples 的 `earth_atmos_2048.jpg`），只用于个人学习展示。原来的蓝色光晕和蓝紫边缘已移除，星球外恢复为透明星空。
 
 ## 页面
 
