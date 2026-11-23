@@ -10,9 +10,9 @@ let sending = false;
 const aiHistory = { coffee: [], makers: [], exchange: [] };
 function setBusy(value) {
  sending = value;
- document.querySelectorAll('[data-room], #chat-mode, #new-chat, #send-chat').forEach(node => { node.disabled = value; });
+ document.querySelectorAll('[data-room], #chat-mode, #new-chat, #send-chat, #report-chat').forEach(node => { node.disabled = value; });
  $('#chat-input').readOnly = value;
- $('#send-chat').textContent = value ? '正在回复…' : chatMode === 'ai' ? '发送给 AI' : '加入练习记录';
+ $('#send-chat').textContent = value ? '正在处理…' : chatMode === 'ai' ? '发送给 AI' : '加入练习记录';
 }
 let practiceLog = {};
 try {
@@ -44,6 +44,7 @@ function renderRoom() {
     $('#chat-input').value = roomDrafts[currentRoom] || '';
     $('#chat-status').textContent = '发送后，本房间最近的对话将交给你配置的 API 服务商；刷新后 AI 记录清空。';
     $('#message-log').scrollTop = $('#message-log').scrollHeight;
+    updateReportButton();
     return;
   }
   for (const message of room.messages) addMessage(...message);
@@ -52,10 +53,64 @@ function renderRoom() {
   $('#chat-input').value = roomDrafts[currentRoom] || '';
   $('#chat-status').textContent = '仅本地练习，不会发送给其他人。';
   $('#message-log').scrollTop = $('#message-log').scrollHeight;
+  updateReportButton();
+}
+
+function updateReportButton() {
+  const button = $('#report-chat');
+  if (!button) return;
+  const hasReply = aiHistory[currentRoom].some((message) => message.role === 'assistant');
+  button.hidden = !(chatMode === 'ai' && hasReply);
+  button.disabled = sending;
+}
+
+function hideReport() {
+  const panel = $('#report-panel');
+  if (!panel) return;
+  panel.hidden = true;
+  $('#report-content').textContent = '';
+  $('#report-status').textContent = '';
+}
+
+async function generateReport() {
+  if (sending) return;
+  const room = currentRoom;
+  const history = aiHistory[room];
+  if (!history.some((message) => message.role === 'assistant')) {
+    $('#chat-status').textContent = '先和 AI 聊几句，再生成报告。';
+    return;
+  }
+  const panel = $('#report-panel');
+  panel.hidden = false;
+  $('#report-content').textContent = '正在回顾这段对话……';
+  $('#report-status').textContent = '';
+  setBusy(true);
+  try {
+    const response = await fetch('./api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ room, messages: history }),
+      signal: AbortSignal.timeout(45000)
+    });
+    let data;
+    try { data = await response.json(); }
+    catch { throw new Error('当前托管不支持报告服务，请通过本地 Node 服务打开。'); }
+    if (!response.ok || typeof data.report !== 'string') throw new Error(data.error || '报告暂时没有生成。');
+    $('#report-content').textContent = data.report;
+    $('#report-status').textContent = '报告只保存在本次页面中，可以复制带走。';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (error) {
+    $('#report-content').textContent = '';
+    $('#report-status').textContent = (error.name === 'TimeoutError' ? '生成超时，请稍后重试。' : error.message) + ' 对话记录还在。';
+  } finally {
+    setBusy(false);
+    updateReportButton();
+  }
 }
 document.querySelectorAll('[data-room]').forEach(button => button.addEventListener('click', () => {
   roomDrafts[currentRoom] = $('#chat-input').value;
   currentRoom = button.dataset.room;
+  hideReport();
   document.querySelectorAll('[data-room]').forEach(item => { item.classList.toggle('active', item === button); item.setAttribute('aria-pressed',String(item === button)); });
   renderRoom();
 }));
@@ -72,6 +127,7 @@ $('#chat-form').addEventListener('submit', async event => {
   if (sending) return;
   if (chatMode === 'ai') {
     if (location.protocol === 'file:') { $('#chat-status').textContent = '请通过 node server.mjs 启动，并从本地网址打开页面。'; return; }
+    hideReport();
     const room = currentRoom;
     const messages = [...aiHistory[room].slice(-10).map(m => ({...m,content:m.content.slice(0,2000)})), { role:'user', content:text }];
     addMessage('ME','我 · 等待回复',text,true);
@@ -105,11 +161,37 @@ renderRoom();
 $('#chat-mode').addEventListener('change', async () => {
  roomDrafts[currentRoom] = $('#chat-input').value;
  chatMode = $('#chat-mode').value;
+ hideReport();
  $('#new-chat').hidden = chatMode !== 'ai';
  renderRoom(); setBusy(false);
+ updateReportButton();
  if (chatMode === 'ai' && location.protocol !== 'file:') {
    try { const r=await fetch('./api/status'); const data=await r.json(); if(chatMode === 'ai' && !sending) $('#chat-status').textContent = data.configured ? 'API 配置已就绪；发送时会将本房间上下文交给服务商。' : 'API 尚未配置。在本地 .env 填好地址、密钥和模型后重启服务。'; } catch { if(chatMode === 'ai' && !sending) $('#chat-status').textContent='聊天后端不可用，请通过 Node 服务打开。'; }
  }
 });
 $('#new-chat').hidden = true;
-$('#new-chat').addEventListener('click', () => { aiHistory[currentRoom] = []; roomDrafts[currentRoom] = ''; renderRoom(); });
+$('#new-chat').addEventListener('click', () => { hideReport(); aiHistory[currentRoom] = []; roomDrafts[currentRoom] = ''; renderRoom(); });
+
+$('#report-chat').addEventListener('click', generateReport);
+
+$('#copy-report').addEventListener('click', async () => {
+ const text = $('#report-content').textContent.trim();
+ if (!text) { $('#report-status').textContent = '还没有报告可以复制。'; return; }
+ try {
+  await navigator.clipboard.writeText(text);
+  $('#report-status').textContent = '报告已复制。';
+ } catch {
+  $('#report-status').textContent = '浏览器没有允许复制，请手动选择文字。';
+ }
+});
+
+$('#close-report').addEventListener('click', hideReport);
+
+$('#report-new-chat').addEventListener('click', () => {
+ hideReport();
+ aiHistory[currentRoom] = [];
+ roomDrafts[currentRoom] = '';
+ renderRoom();
+ $('#report-chat').hidden = true;
+ $('#chat-input').focus();
+});

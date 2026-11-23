@@ -93,6 +93,10 @@ export async function handleChat(req, res, pathname) {
     json(res, 200, { configured: Boolean(config()) });
     return;
   }
+  if (pathname === '/api/report') {
+    await handleReport(req, res);
+    return;
+  }
   if (pathname !== '/api/chat') {
     json(res, 404, { error: '接口不存在。' });
     return;
@@ -184,6 +188,104 @@ export async function handleChat(req, res, pathname) {
     json(res, 200, { reply: answer.slice(0, 12000) });
   } catch (error) {
     json(res, 502, { error: error.name === 'TimeoutError' ? '回复超时，请稍后重试。' : '无法连接服务商，请检查地址与网络。' });
+  } finally {
+    busy = false;
+  }
+}
+
+async function handleReport(req, res) {
+  if (req.method !== 'POST') {
+    json(res, 405, { error: '请使用 POST。' });
+    return;
+  }
+  if (!req.headers['content-type']?.startsWith('application/json')) {
+    json(res, 415, { error: '请使用 JSON 请求。' });
+    return;
+  }
+
+  let body;
+  try {
+    const chunks = [];
+    let bytes = 0;
+    for await (const chunk of req) {
+      chunks.push(chunk);
+      bytes += chunk.length;
+      if (bytes > 48000) {
+        json(res, 413, { error: '对话内容过长，无法生成报告。' });
+        return;
+      }
+    }
+    body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  } catch {
+    json(res, 400, { error: '请求格式不正确。' });
+    return;
+  }
+
+  const history = body?.messages;
+  if (!body || !Object.hasOwn(topics, body.room) || !Array.isArray(history) || history.length < 2 || history.length > 20 || history.some((message) => !message || !['user', 'assistant'].includes(message.role) || typeof message.content !== 'string' || !message.content.trim() || message.content.length > 4000) || !history.some((message) => message.role === 'assistant')) {
+    json(res, 400, { error: '请提供一段包含 AI 回复的对话。' });
+    return;
+  }
+
+  const settings = config();
+  if (!settings) {
+    json(res, 503, { error: '尚未配置 API。请在本地 .env 中设置接口地址、密钥和模型，然后重启服务。' });
+    return;
+  }
+  if (isRateLimited(req)) {
+    res.setHeader('Retry-After', '3600');
+    json(res, 429, { error: '这个网络今天说得有点多，休息一会儿再来吧。' });
+    return;
+  }
+  if (busy) {
+    json(res, 429, { error: '正在处理上一条消息，请稍后再试。' });
+    return;
+  }
+
+  busy = true;
+  try {
+    const reportSystem = `You are an English practice coach reviewing a short conversation in a warm language salon. Write a compact practice report in Chinese, under 230 Chinese characters. Use exactly four short parts with these labels on separate lines: 这次聊了、做得好的、可以更自然、下一轮建议. In "可以更自然", quote at most one short original sentence and offer a natural rewrite. Be encouraging, concrete and honest. Do not invent facts, do not claim to be human, and do not add extra sections. Topic: ${topics[body.room]}.`;
+    const reportInstruction = {
+      role: 'user',
+      content: '请根据上面的对话生成这份简短的中文练习报告。'
+    };
+    const response = await fetch(settings.endpoint, {
+      method: 'POST',
+      redirect: 'error',
+      signal: AbortSignal.timeout(30000),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${settings.key}` },
+      body: JSON.stringify({
+        model: settings.model,
+        stream: false,
+        temperature: 0.4,
+        max_tokens: 650,
+        ...(settings.deepseek ? { thinking: { type: 'disabled' } } : {}),
+        messages: [
+          { role: 'system', content: reportSystem },
+          ...history.map(({ role, content }) => ({ role, content })),
+          reportInstruction
+        ]
+      })
+    });
+    if (!response.ok) {
+      json(res, 502, {
+        error: response.status === 401 || response.status === 403
+          ? '服务商拒绝认证，请检查密钥与权限。'
+          : response.status === 429
+            ? '服务商额度或请求频率受限，请稍后重试。'
+            : '服务商暂时未能生成报告，请检查接口和模型配置。'
+      });
+      return;
+    }
+    const result = await response.json();
+    const report = result?.choices?.[0]?.message?.content;
+    if (typeof report !== 'string' || !report.trim()) {
+      json(res, 502, { error: '报告返回格式不兼容。' });
+      return;
+    }
+    json(res, 200, { report: report.trim().slice(0, 6000) });
+  } catch (error) {
+    json(res, 502, { error: error.name === 'TimeoutError' ? '报告生成超时，请稍后重试。' : '无法连接服务商，请检查地址与网络。' });
   } finally {
     busy = false;
   }

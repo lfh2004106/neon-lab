@@ -18,7 +18,7 @@ V0.8：深空首页、嵌入式小工坊、英语沙龙与个人博客。保留�
 
 - `index.html`：可拖动的小星球，用星球、目的地按钮进入嵌入式与英语；博客从嵌入式页进入。
 - `embedded.html`：嵌入式小工坊，包含 GitHub、三个实验示例、资料收藏和实验日志。
-- `english.html`：AI 英语沙龙、资料收藏与匿名留言板。
+- `english.html`：AI 英语沙龙、对话结束后的练习报告、资料收藏与光弧留言板。
 - `blog.html`：个人博客，继续使用 `posts/` 里的 Markdown 文章和本地写作表单。
 
 ## 本地运行
@@ -47,9 +47,13 @@ CHAT_RATE_LIMIT=30
 
 密钥只放服务端，不提交到 GitHub。公开部署时在 Render 环境变量里填写同样的配置。
 
+AI 对话里出现回复后，聊天输入框旁会出现「生成练习报告」。报告由服务端 `/api/report` 请求同一个模型生成，内容只保留在本次页面中，可以复制；生成报告也会占用一次每小时请求额度。
+
 ## 匿名留言
 
-留言板使用 Supabase Postgres，后端 `guestbook-api.mjs` 持有服务端密钥：
+留言板使用 Supabase Postgres，后端 `guestbook-api.mjs` 持有服务端密钥。留言会以一条发光弧线从页面上飘过，鼠标停在留言上可以暂停阅读。
+
+启用步骤：
 
 1. 在 Supabase SQL Editor 执行 `supabase/guestbook.sql`；
 2. 在 Render 环境变量填写 `SUPABASE_URL`、`SUPABASE_SECRET_KEY`；
