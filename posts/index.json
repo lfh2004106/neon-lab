@@ -1,0 +1,27 @@
+[
+  {
+    "slug": "2026-11-23-button-debounce",
+    "title": "按键消抖：为什么按一次会翻转好几次",
+    "date": "2026-11-23",
+    "tags": [
+      "Arduino",
+      "输入",
+      "调试",
+      "实验日志"
+    ],
+    "summary": "用 INPUT_PULLUP 和 30 ms 时间窗做软件消抖，验证短按、长按与快速连按的行为。",
+    "cover": "./assets/industrial-studio-bg.jpg"
+  },
+  {
+    "slug": "2026-11-23-first-blink",
+    "title": "第一次让 LED 心跳：从 delay 到 millis",
+    "date": "2026-11-23",
+    "tags": [
+      "Arduino",
+      "GPIO",
+      "实验日志"
+    ],
+    "summary": "用非阻塞计时让板载 LED 每 500 ms 翻转一次，并记录间隔改变后观察到的现象。",
+    "cover": "./assets/engineering-studio-bg.jpg"
+  }
+]

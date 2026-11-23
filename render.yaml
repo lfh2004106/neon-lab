@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: neon-lab
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: 0.0.0.0
+      - key: CHAT_API_URL
+        value: https://api.deepseek.com/chat/completions
+      - key: CHAT_MODEL
+        value: deepseek-flash
+      - key: CHAT_PROVIDER
+        value: deepseek
+      - key: CHAT_API_KEY
+        sync: false
+      - key: CHAT_RATE_LIMIT
+        value: "30"

@@ -1,0 +1,15 @@
+{
+  "name": "neon-lab-prototype",
+  "version": "0.6.0",
+  "private": true,
+  "description": "Cyberpunk-inspired personal hardware and language learning website prototype",
+  "scripts": {
+    "dev": "node server.mjs",
+    "posts": "node scripts/build-posts.mjs",
+    "check": "node --check app.js && node --check studio.js && node --check learning.js && node --check lounge.js && node --check blog.js && node --check server.mjs && node --check chat-api.mjs && node --check blog-api.mjs && node --check scripts/post-utils.mjs && node --check scripts/build-posts.mjs",
+    "test": "node --test tests/chat-api.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

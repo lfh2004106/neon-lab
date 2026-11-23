@@ -1,0 +1,373 @@
+/* NEON / LAB — V0.6 ambient backgrounds and surface polish */
+
+body {
+  position: relative;
+  isolation: isolate;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+body > header,
+body > main,
+body > footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* Home: a soft cyan/rose glow behind the After Hours portrait. */
+body.world-home::before {
+  background:
+    radial-gradient(ellipse 70% 45% at 82% 12%, #e995ba12, transparent 65%),
+    radial-gradient(ellipse 55% 45% at 8% 88%, #70e4d20e, transparent 65%),
+    linear-gradient(180deg, #0b1013, #0b1013);
+}
+
+body.world-home::after {
+  opacity: 0.28;
+  background-image:
+    linear-gradient(90deg, transparent 0 49.9%, #e995ba0b 50%, transparent 50.1%),
+    linear-gradient(180deg, transparent 0 49.9%, #70e4d20b 50%, transparent 50.1%);
+  background-size: 120px 120px;
+  mask-image: linear-gradient(180deg, transparent, #000 25%, transparent 85%);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 25%, transparent 85%);
+}
+
+/* Embedded: an actual workshop photograph, dimmed into a blueprint atmosphere. */
+body.world-embedded::before {
+  background:
+    linear-gradient(180deg, #171c1dde 0%, #171c1df2 45%, #171c1d 100%),
+    radial-gradient(ellipse 55% 50% at 88% 4%, #d7d69a1f, transparent 70%),
+    url("./assets/engineering-studio-bg.jpg") center / cover no-repeat;
+}
+
+body.world-embedded::after {
+  opacity: 0.55;
+  background-image:
+    linear-gradient(#cbd2a609 1px, transparent 1px),
+    linear-gradient(90deg, #cbd2a609 1px, transparent 1px),
+    radial-gradient(ellipse at 50% 0%, #e6e0a012, transparent 60%);
+  background-size: 80px 80px, 80px 80px, 100% 100%;
+  mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 92%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 92%);
+}
+
+/* English: the warm salon photo becomes a soft, defocused backdrop. */
+body.world-english::before {
+  background:
+    linear-gradient(180deg, #1b1512e0 0%, #201a16ee 42%, #211b18 100%),
+    radial-gradient(ellipse 65% 50% at 92% 0%, #d595571f, transparent 65%),
+    url("./assets/salon-bg.jpg") center / cover no-repeat;
+}
+
+body.world-english::after {
+  opacity: 0.8;
+  background:
+    radial-gradient(circle at 12% 18%, #e6b77a12, transparent 28%),
+    radial-gradient(circle at 86% 8%, #e995ba10, transparent 30%),
+    radial-gradient(circle at 72% 82%, #c77d4a0d, transparent 32%);
+}
+
+/* Blog: quiet paper-and-night atmosphere. */
+body.world-blog::before {
+  background:
+    radial-gradient(ellipse 60% 45% at 90% 0%, #c9c28e0d, transparent 70%),
+    linear-gradient(180deg, #111410, #111410);
+}
+
+body.world-blog::after {
+  opacity: 0.35;
+  background-image: linear-gradient(#d8d7a308 1px, transparent 1px);
+  background-size: 100% 4px;
+  mask-image: linear-gradient(180deg, #000, transparent 55%);
+  -webkit-mask-image: linear-gradient(180deg, #000, transparent 55%);
+}
+
+/* ---------- Shared surface polish ---------- */
+
+.world-home .section {
+  position: relative;
+}
+
+.world-home .portal {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.world-home .portal:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 60px #0004;
+}
+
+.journal-teaser {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 50px;
+  padding-block: 58px 74px;
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.journal-teaser h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", "Songti SC", serif;
+  font-size: clamp(30px, 3.4vw, 46px);
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -1px;
+  color: #f0eee2;
+}
+
+.journal-teaser-side {
+  max-width: 390px;
+  padding-left: 24px;
+  border-left: 1px solid var(--line);
+}
+
+.journal-teaser-side p {
+  margin: 0 0 20px;
+  color: #b9c1bc;
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.world-embedded .curriculum,
+.world-english .english-section {
+  position: relative;
+}
+
+.world-embedded .knowledge-map {
+  box-shadow: 0 22px 60px #0002;
+}
+
+.world-embedded .space-photo {
+  box-shadow: 8px 8px 0 #30372e, 0 28px 70px #0004;
+}
+
+.world-embedded .space-photo img,
+.world-english .space-photo img {
+  transition: transform 0.8s ease, filter 0.4s ease;
+}
+
+.world-embedded .space-photo:hover img,
+.world-english .space-photo:hover img {
+  transform: scale(1.025);
+}
+
+.world-embedded .week-card,
+.world-english .room-button,
+.world-english .message-bubble {
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.world-embedded .week-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.world-embedded .week-card::after {
+  content: "";
+  position: absolute;
+  right: -32px;
+  top: -32px;
+  width: 96px;
+  height: 96px;
+  border: 1px solid #c8ce9b2b;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.world-embedded .week-card:hover {
+  transform: translateY(-2px);
+  border-color: #a8ad7d;
+  box-shadow: 0 16px 35px #0003;
+}
+
+.world-embedded .week-card > span {
+  color: #d8d19c;
+  letter-spacing: 2px;
+}
+
+.world-embedded .lab-guide {
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.world-embedded .lab-guide:hover {
+  border-color: #9da777;
+}
+
+.world-embedded .lab-guide[open] {
+  background: #253029;
+  border-color: #878f62;
+}
+
+.world-english .chat-shell {
+  box-shadow: 0 30px 90px #0c0703aa, 0 0 70px -30px #dba15c55;
+}
+
+.world-english .room-button:hover {
+  transform: translateX(2px);
+  border-color: #a67e55;
+}
+
+.world-english .room-button.active {
+  box-shadow: 0 10px 30px #1e120a55;
+}
+
+.world-english .message-bubble {
+  box-shadow: 0 4px 18px #1c110a33;
+}
+
+.world-english .conversation {
+  background-image:
+    radial-gradient(ellipse at 100% 10%, #a5734140, transparent 75%),
+    radial-gradient(ellipse at 0% 100%, #c68e4c18, transparent 60%);
+}
+
+.world-english .english-section {
+  background-image:
+    radial-gradient(ellipse at 8% 100%, #d69a5718, transparent 55%),
+    radial-gradient(ellipse at 100% 0%, #a9543b14, transparent 60%);
+}
+
+/* ---------- Embedded learning phases ---------- */
+
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 26px 0 18px;
+}
+
+.phase-card {
+  position: relative;
+  padding: 18px 18px 16px;
+  border: 1px solid #515c4a;
+  background: linear-gradient(155deg, #232b25, #191f1b);
+  overflow: hidden;
+}
+
+.phase-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: linear-gradient(180deg, #e2d7a0, #728a73);
+  opacity: 0.8;
+}
+
+.phase-card span {
+  font: 10px var(--mono);
+  letter-spacing: 1.5px;
+  color: #c9cd9d;
+}
+
+.phase-card h3 {
+  margin: 9px 0 7px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #ece9ce;
+}
+
+.phase-card p {
+  margin: 0 0 10px;
+  color: #b8c2ae;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.phase-card small {
+  color: #929d87;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.study-principles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0 0 34px;
+  padding: 12px 0;
+  border-top: 1px solid #4b5746;
+  border-bottom: 1px solid #4b5746;
+  font-size: 12px;
+  color: #aeb9a3;
+}
+
+.study-principles span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.study-principles span::before {
+  content: "＋";
+  color: #d8cf9c;
+  font-family: var(--mono);
+}
+
+/* ---------- Navigation on narrow screens ---------- */
+
+@media (max-width: 760px) {
+  .header nav {
+    gap: 16px;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+
+  .header nav a {
+    white-space: nowrap;
+  }
+
+  .journal-teaser {
+    display: block;
+    padding-block: 42px 52px;
+  }
+
+  .journal-teaser-side {
+    max-width: none;
+    margin-top: 24px;
+    padding-left: 18px;
+  }
+
+  .phase-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .phase-card {
+    padding: 15px;
+  }
+
+  .study-principles {
+    gap: 8px 12px;
+    margin-bottom: 26px;
+  }
+}
+
+@media (max-width: 420px) {
+  .header nav {
+    gap: 12px;
+    font-size: 12px;
+  }
+
+  .phase-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .world-home .portal,
+  .world-embedded .space-photo img,
+  .world-english .space-photo img,
+  .world-embedded .week-card,
+  .world-english .room-button {
+    transition: none;
+  }
+}
