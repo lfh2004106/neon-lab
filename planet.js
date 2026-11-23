@@ -8,13 +8,12 @@
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const destinations = [
     ['嵌入式开发', '电路、代码，以及把想法做出来的过程。', './embedded.html'],
-    ['英语沙龙', '坐一会儿，用英语分享今天的新发现。', './english.html'],
-    ['实验日志', '记录每一次尝试，让小小的进步有迹可循。', './embedded.html#journal']
+    ['英语沙龙', '坐一会儿，用英语分享今天的新发现。', './english.html']
   ];
   let index = 0, angle = 1.2, down = false, last = 0, delta = 0;
   let paused = reduced.matches, frame = 0, lastFrame = 0, render = () => {};
   function select(n) {
-    index = (n + 3) % 3;
+    index = (n + destinations.length) % destinations.length;
     const [title, description, url] = destinations[index];
     document.querySelector('#destination-label').textContent = title;
     document.querySelector('#destination-description').textContent = description;
