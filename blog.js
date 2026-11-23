@@ -218,6 +218,13 @@ function renderTags() {
   );
 }
 
+function accentFor(post) {
+  const tags = (post.tags || []).join(' ');
+  if (/调试|输入|按键/.test(tags)) return 'rose';
+  if (/GPIO|LED|Arduino/.test(tags)) return 'cyan';
+  return 'lime';
+}
+
 function renderList() {
   const list = $('#post-list');
   const posts = state.tag === '全部' ? state.posts : state.posts.filter((post) => (post.tags || []).includes(state.tag));
@@ -227,10 +234,13 @@ function renderList() {
     return;
   }
 
-  list.innerHTML = posts.map((post) => {
+  const variants = ['feature', 'terminal', 'compact'];
+  list.innerHTML = posts.map((post, index) => {
     const cover = post.cover ? `<img src="${escapeHtml(safeUrl(post.cover))}" alt="" loading="lazy">` : '';
     const tags = (post.tags || []).map((tag) => `<span>${escapeHtml(tag)}</span>`).join('');
-    return `<article class="post-card">
+    const variant = variants[index % variants.length];
+    const accent = accentFor(post);
+    return `<article class="post-card post-card--${variant} blog-accent-${accent}" data-index="${String(index + 1).padStart(2, '0')}">
       <a class="post-cover" href="#post/${encodeURIComponent(post.slug)}" aria-label="阅读 ${escapeHtml(post.title)}">${cover}</a>
       <div class="post-body">
         <p class="post-date">${formatDate(post.date)} / FIELD NOTE</p>
@@ -264,6 +274,7 @@ async function openPost(slug) {
     const body = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
     const meta = state.posts.find((post) => post.slug === slug) || {};
     const title = meta.title || slug;
+    reader.dataset.accent = accentFor(meta);
 
     $('#reader-title').textContent = title;
     $('#reader-date').textContent = `${formatDate(meta.date)} / ${readingTime(body)} MIN READ`;

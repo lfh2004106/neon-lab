@@ -16,6 +16,7 @@ const files = new Map([
   ['/orbit.css', ['orbit.css', 'text/css; charset=utf-8']],
   ['/assets/spark-space-reference.jpg', ['assets/spark-space-reference.jpg', 'image/jpeg']],
   ['/assets/earth-blue-marble.jpg', ['assets/earth-blue-marble.jpg', 'image/jpeg']],
+  ['/assets/neon-workshop-bg.jpg', ['assets/neon-workshop-bg.jpg', 'image/jpeg']],
   ['/spark.css', ['spark.css', 'text/css; charset=utf-8']],
   ['/planet.js', ['planet.js', 'text/javascript; charset=utf-8']],
   ['/resources.js', ['resources.js', 'text/javascript; charset=utf-8']],
