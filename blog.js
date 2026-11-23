@@ -278,7 +278,7 @@ async function openPost(slug) {
     }
 
     $('#reader-content').innerHTML = renderMarkdown(body);
-    document.title = `${title} · NEON LAB`;
+    document.title = `${title} · Spark 的日记`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (error) {
     $('#reader-title').textContent = '日志读取失败';
@@ -290,7 +290,7 @@ function showList() {
   document.body.classList.remove('reading');
   $('#reader').hidden = true;
   state.activeSlug = null;
-  document.title = '实验日志 · NEON LAB';
+  document.title = '个人博客 · Spark 的日记';
 }
 
 function route() {

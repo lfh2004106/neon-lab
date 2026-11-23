@@ -1,13 +1,13 @@
 {
-  "name": "neon-lab-prototype",
-  "version": "0.6.0",
+  "name": "spark-diary",
+  "version": "0.8.0",
   "private": true,
-  "description": "Cyberpunk-inspired personal hardware and language learning website prototype",
+  "description": "Spark 的日记：项目、英语与一个好奇的小星球",
   "scripts": {
     "dev": "node server.mjs",
     "posts": "node scripts/build-posts.mjs",
-    "check": "node --check app.js && node --check studio.js && node --check learning.js && node --check lounge.js && node --check blog.js && node --check server.mjs && node --check chat-api.mjs && node --check blog-api.mjs && node --check scripts/post-utils.mjs && node --check scripts/build-posts.mjs",
-    "test": "node --test tests/chat-api.test.mjs"
+    "check": "node --check app.js && node --check studio.js && node --check learning.js && node --check lounge.js && node --check blog.js && node --check server.mjs && node --check chat-api.mjs && node --check blog-api.mjs && node --check scripts/post-utils.mjs && node --check scripts/build-posts.mjs && node --check guestbook-api.mjs && node --check guestbook.js && node --check resources.js && node --check planet.js",
+    "test": "node --test tests/chat-api.test.mjs tests/guestbook.test.mjs"
   },
   "engines": {
     "node": ">=22"

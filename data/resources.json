@@ -1,0 +1,17 @@
+{
+  "embedded": [
+    {
+      "title": "Arduino 官方文档",
+      "description": "开发板资料、参考文档与入门示例。",
+      "url": "https://docs.arduino.cc/",
+      "tag": "官方入口"
+    },
+    {
+      "title": "我整理的 Uno R3 学习笔记",
+      "description": "原有的八周学习路线与三个实验，收进笔记，需要时再打开。",
+      "url": "./notes/07-UnoR3学习方案.md",
+      "tag": "学习笔记"
+    }
+  ],
+  "english": []
+}

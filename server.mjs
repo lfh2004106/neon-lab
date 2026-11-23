@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { handleGuestbook } from './guestbook-api.mjs';
 import path from 'node:path';
 import { readFile } from 'node:fs/promises';
 import { handleChat } from './chat-api.mjs';
@@ -12,6 +13,13 @@ try {
 }
 
 const files = new Map([
+  ['/orbit.css', ['orbit.css', 'text/css; charset=utf-8']],
+  ['/assets/spark-space-reference.jpg', ['assets/spark-space-reference.jpg', 'image/jpeg']],
+  ['/spark.css', ['spark.css', 'text/css; charset=utf-8']],
+  ['/planet.js', ['planet.js', 'text/javascript; charset=utf-8']],
+  ['/resources.js', ['resources.js', 'text/javascript; charset=utf-8']],
+  ['/guestbook.js', ['guestbook.js', 'text/javascript; charset=utf-8']],
+  ['/data/resources.json', ['data/resources.json', 'application/json; charset=utf-8']],
   ['/learning.css', ['learning.css', 'text/css; charset=utf-8']],
   ['/learning.js', ['learning.js', 'text/javascript; charset=utf-8']],
   ['/ambient.css', ['ambient.css', 'text/css; charset=utf-8']],
@@ -84,6 +92,7 @@ const server = http.createServer(async (request, response) => {
   }
 
   if (pathname.startsWith('/api/')) {
+    if (pathname === '/api/guestbook') { await handleGuestbook(request, response); return; }
     if (pathname === '/api/posts') {
       await handleBlogApi(request, response, pathname);
       return;
