@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { buildContentBundle } from './build-content.mjs';
 
 export const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const postsDir = path.join(projectRoot, 'posts');
@@ -80,6 +81,7 @@ export async function buildManifest() {
       slug,
       title: data.title || slug,
       date: data.date || '',
+      ...(data.parent ? { parent: data.parent } : {}),
       tags: normalizeTags(data.tags),
       summary: data.summary || '',
       cover: data.cover || ''
@@ -88,5 +90,6 @@ export async function buildManifest() {
 
   posts.sort((a, b) => String(b.date).localeCompare(String(a.date)) || a.title.localeCompare(b.title, 'zh-CN'));
   await fs.writeFile(path.join(postsDir, 'index.json'), `${JSON.stringify(posts, null, 2)}\n`);
+  await buildContentBundle(projectRoot, posts);
   return posts;
 }

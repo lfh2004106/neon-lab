@@ -199,7 +199,7 @@ function readingTime(body) {
 /* ---------------- List ---------------- */
 
 function renderTags() {
-  const tags = [...new Set(state.posts.flatMap((post) => post.tags || []))];
+  const tags = [...new Set(state.posts.filter(post => !post.parent).flatMap((post) => post.tags || []))];
   const all = ['全部', ...tags];
   $('#tag-filter').replaceChildren(
     ...all.map((tag) => {
@@ -227,7 +227,8 @@ function accentFor(post) {
 
 function renderList() {
   const list = $('#post-list');
-  const posts = state.tag === '全部' ? state.posts : state.posts.filter((post) => (post.tags || []).includes(state.tag));
+  const entries = state.posts.filter(post => !post.parent);
+  const posts = state.tag === '全部' ? entries : entries.filter((post) => (post.tags || []).includes(state.tag));
 
   if (!posts.length) {
     list.innerHTML = '<p class="blog-empty">这个标签下还没有日志。完成一次练习后，写第一篇吧。</p>';
@@ -268,9 +269,8 @@ async function openPost(slug) {
   $('#reader-cover').hidden = true;
 
   try {
-    const response = await fetch(`./posts/${encodeURIComponent(slug)}.md`, { cache: 'no-store' });
-    if (!response.ok) throw new Error('找不到这篇日志。');
-    const source = await response.text();
+    const source = await window.SparkContent.readText(`./posts/${encodeURIComponent(slug)}.md`);
+    if (state.activeSlug !== slug) return;
     const body = source.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '');
     const meta = state.posts.find((post) => post.slug === slug) || {};
     const title = meta.title || slug;
@@ -292,8 +292,9 @@ async function openPost(slug) {
     document.title = `${title} · Spark 的日记`;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (error) {
+    if (state.activeSlug !== slug) return;
     $('#reader-title').textContent = '日志读取失败';
-    $('#reader-content').innerHTML = `<p>${escapeHtml(error.message)}</p><p>如果直接双击打开页面，浏览器会阻止读取 Markdown。请运行 <code>node server.mjs</code> 后通过本地网址访问。</p>`;
+    $('#reader-content').innerHTML = `<p>${escapeHtml(error.message)}</p><p>请刷新重试，或返回日志列表选择现有文章。</p>`;
   }
 }
 
@@ -413,16 +414,14 @@ async function publishPost() {
 async function loadPosts() {
   const list = $('#post-list');
   try {
-    const response = await fetch('./posts/index.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error('无法读取日志索引。');
-    const data = await response.json();
+    const data = await window.SparkContent.readJSON('./posts/index.json');
     state.posts = Array.isArray(data) ? data : [];
     renderTags();
     renderList();
   } catch (error) {
     state.posts = [];
     $('#tag-filter').replaceChildren();
-    list.innerHTML = '<p class="blog-empty">还没有加载到日志。请通过 <code>node server.mjs</code> 启动本地服务，或确认 posts/index.json 已生成。</p>';
+    list.innerHTML = '<p class="blog-empty">日志目录暂时没有打开，请刷新页面重试。</p>';
   }
 }
 

@@ -13,6 +13,14 @@ try {
 }
 
 const files = new Map([
+  ['/site-content.js', ['site-content.js', 'text/javascript; charset=utf-8']],
+  ['/projects/heart-matrix/index.html', ['projects/heart-matrix/index.html', 'text/html; charset=utf-8']],
+  ['/projects/heart-matrix/preview.png', ['projects/heart-matrix/preview.png', 'image/png']],
+  ['/projects/heart-matrix/README.md', ['projects/heart-matrix/README.md', 'text/markdown; charset=utf-8']],
+  ['/projects/heart-matrix/heart_matrix/heart_matrix.ino', ['projects/heart-matrix/heart_matrix/heart_matrix.ino', 'text/plain; charset=utf-8']],
+  ['/projects/heart-matrix/notes/01-learning-notes.md', ['projects/heart-matrix/notes/01-learning-notes.md', 'text/markdown; charset=utf-8']],
+  ['/projects/heart-matrix/notes/02-troubleshooting.md', ['projects/heart-matrix/notes/02-troubleshooting.md', 'text/markdown; charset=utf-8']],
+  ['/projects/heart-matrix/notes/03-project-log.md', ['projects/heart-matrix/notes/03-project-log.md', 'text/markdown; charset=utf-8']],
   ['/orbit.css', ['orbit.css', 'text/css; charset=utf-8']],
   ['/salon.css', ['salon.css', 'text/css; charset=utf-8']],
   ['/assets/spark-space-reference.jpg', ['assets/spark-space-reference.jpg', 'image/jpeg']],
@@ -38,9 +46,6 @@ const files = new Map([
   ['/assets/salon-bg.jpg', ['assets/salon-bg.jpg', 'image/jpeg']],
   ['/assets/industrial-studio-bg.jpg', ['assets/industrial-studio-bg.jpg', 'image/jpeg']],
   ['/notes/07-UnoR3学习方案.md', ['notes/07-UnoR3学习方案.md', 'text/markdown; charset=utf-8']],
-  ['/examples/Heartbeat/Heartbeat.ino', ['examples/Heartbeat/Heartbeat.ino', 'text/plain; charset=utf-8']],
-  ['/examples/ButtonLamp/ButtonLamp.ino', ['examples/ButtonLamp/ButtonLamp.ino', 'text/plain; charset=utf-8']],
-  ['/examples/ThresholdMonitor/ThresholdMonitor.ino', ['examples/ThresholdMonitor/ThresholdMonitor.ino', 'text/plain; charset=utf-8']],
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/embedded.html', ['embedded.html', 'text/html; charset=utf-8']],

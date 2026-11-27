@@ -1,35 +1,12 @@
 'use strict';
 
 const EXAMPLES = {
-  heartbeat: {
-    title: '第一束光',
-    tab: '第一束光',
-    file: './examples/Heartbeat/Heartbeat.ino',
-    fileName: 'Heartbeat.ino',
-    meta: 'GPIO · 非阻塞计时',
-    description: '用 millis() 驱动 LED 心跳，理解时间与循环的关系。',
-    board: 'Arduino Uno',
-    port: 'COM6'
-  },
-  'button-lamp': {
-    title: '一次按下，一次回应',
-    tab: '一次按下，一次回应',
-    file: './examples/ButtonLamp/ButtonLamp.ino',
-    fileName: 'ButtonLamp.ino',
-    meta: '输入 · 软件消抖',
-    description: '读取按键、过滤抖动，再用状态变化控制一盏灯。',
-    board: 'Arduino Uno',
-    port: 'COM6'
-  },
-  threshold: {
-    title: '感知连续的世界',
-    tab: '感知连续的世界',
-    file: './examples/ThresholdMonitor/ThresholdMonitor.ino',
-    fileName: 'ThresholdMonitor.ino',
-    meta: 'ADC · 阈值与回差',
-    description: '用电位器观察模拟量，通过上下阈值稳定报警状态。',
-    board: 'Arduino Uno',
-    port: 'COM6'
+  'heart-matrix': {
+    title: '爱心点阵', tab: '爱心点阵',
+    file: './projects/heart-matrix/heart_matrix/heart_matrix.ino',
+    fileName: 'heart_matrix.ino', meta: 'Spark 的第一个项目 · 8×32 MAX7219',
+    description: '四片点阵级联，用亮度变化呈现 1.1 秒心跳。使用 Arduino 内置 SPI 库。',
+    board: 'Arduino Uno R3', port: '未连接（网页只读预览）'
   }
 };
 
@@ -47,7 +24,7 @@ const statusLine = $('#status-line');
 
 const params = new URLSearchParams(location.search);
 const requested = params.get('example');
-const key = EXAMPLES[requested] ? requested : 'heartbeat';
+const key = EXAMPLES[requested] ? requested : 'heart-matrix';
 const example = EXAMPLES[key];
 let codeText = '';
 
@@ -109,7 +86,7 @@ function log(lines) {
 }
 
 function setMeta() {
-  document.title = `${example.title} · 示例代码 · Spark 的日记`;
+  document.title = `${example.title} · 项目代码 · Spark 的日记`;
   $('#window-title').textContent = `${example.title} · Arduino 1.8.15`;
   $('#tab-title').textContent = example.tab;
   $('#tab-file').textContent = example.fileName;
@@ -125,7 +102,7 @@ function lineCount() {
 function renderCode(source) {
   codeText = source.replace(/\r\n?/g, '\n').replace(/\n$/, '');
   if (!codeText) {
-    codeEl.innerHTML = '<span class="code-empty">这个示例暂时没有代码。</span>';
+    codeEl.innerHTML = '<span class="code-empty">这个项目暂时没有代码。</span>';
     lineNumbers.replaceChildren();
     return;
   }
@@ -134,7 +111,7 @@ function renderCode(source) {
 
   const chars = codeText.length;
   log([
-    { text: `> 已打开示例：${example.title}`, className: 'ok' },
+    { text: `> 已打开项目：${example.title}`, className: 'ok' },
     { text: `> 项目：${example.meta}` },
     { text: `> 文件：${example.fileName} · ${lineCount()} 行 · ${chars} 字符` },
     { text: `> 开发板：${example.board} / ${example.port}`, className: 'muted' },
@@ -145,16 +122,14 @@ function renderCode(source) {
 async function loadExample() {
   setMeta();
   try {
-    const response = await fetch(example.file, { cache: 'no-store' });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    renderCode(await response.text());
+    renderCode(await window.SparkContent.readText(example.file));
   } catch (error) {
-    codeEl.innerHTML = '<span class="code-empty">示例代码读取失败。</span>';
+    codeEl.innerHTML = '<span class="code-empty">项目代码读取失败。</span>';
     lineNumbers.replaceChildren();
-    statusLine.textContent = '示例读取失败';
+    statusLine.textContent = '项目读取失败';
     log([
       { text: `> 无法读取 ${example.file}`, className: 'warn' },
-      { text: '> 请确认通过本地 Node 服务或线上站点打开，而不是直接双击 HTML 文件。', className: 'muted' }
+      { text: '> 请刷新页面，或通过“文件 → 查看纯文本源码”打开原始文件。', className: 'muted' }
     ]);
     console.warn(error);
   }
